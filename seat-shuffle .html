@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>자리 배치 셔플</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f0f4ff;
+    --surface: #ffffff;
+    --border: #dde5f5;
+    --accent: #6366f1;
+    --text: #1e293b;
+    --text-muted: #94a3b8;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', sans-serif; min-height: 100vh; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(99,102,241,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.05) 1px, transparent 1px);
+    background-size: 36px 36px; pointer-events: none; z-index: 0;
+  }
+  .wrapper { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 30px 20px; }
+
+  header { text-align: center; margin-bottom: 26px; }
+  .badge { display: inline-block; background: #eef2ff; color: #4f46e5; font-family: 'Space Mono', monospace; font-size: 11px; padding: 5px 16px; border-radius: 20px; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 12px; border: 1px solid #c7d2fe; }
+  h1 { font-size: clamp(24px, 4vw, 40px); font-weight: 900; color: #1e293b; line-height: 1.2; margin-bottom: 6px; }
+  h1 span { color: #6366f1; }
+  .subtitle { color: var(--text-muted); font-size: 13px; font-family: 'Space Mono', monospace; }
+
+  /* ── 고정 패널 ── */
+  .fixed-panel { background: #fffbeb; border: 1.5px solid #fcd34d; border-radius: 14px; padding: 16px 20px; margin-bottom: 20px; }
+  .fixed-panel-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .fixed-panel-title { font-size: 13px; font-weight: 700; color: #92400e; }
+  .fixed-panel-desc { font-size: 11px; color: #b45309; margin-left: auto; }
+  .fixed-toggles { display: flex; flex-wrap: wrap; gap: 8px; }
+  .toggle-item {
+    display: flex; align-items: center; gap: 7px;
+    background: #fff; border: 1.5px solid #fcd34d; border-radius: 10px;
+    padding: 8px 14px; cursor: pointer; transition: all 0.15s; user-select: none;
+  }
+  .toggle-item:hover { border-color: #f59e0b; background: #fef9ee; }
+  .toggle-item.off { background: #f8faff; border-color: var(--border); opacity: 0.6; }
+  .toggle-dot { width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; flex-shrink: 0; transition: background 0.15s; }
+  .toggle-item.off .toggle-dot { background: #cbd5e1; }
+  .toggle-name { font-size: 12px; font-weight: 700; color: #92400e; }
+  .toggle-item.off .toggle-name { color: var(--text-muted); }
+  .toggle-badge { font-size: 9px; padding: 1px 6px; border-radius: 4px; background: #fef3c7; color: #92400e; border: 0.5px solid #fcd34d; font-family: 'Space Mono', monospace; }
+  .toggle-item.off .toggle-badge { background: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; }
+
+  /* ── 버튼 ── */
+  .controls { display: flex; gap: 10px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+  .btn { display: flex; align-items: center; gap: 8px; padding: 11px 22px; border: none; border-radius: 10px; font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.18s ease; }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: #6366f1; color: white; font-size: 15px; padding: 13px 32px; box-shadow: 0 4px 14px rgba(99,102,241,0.35); }
+  .btn-primary:hover { background: #4f46e5; box-shadow: 0 6px 20px rgba(99,102,241,0.45); transform: translateY(-1px); }
+  .btn-secondary { background: #fff; color: #475569; border: 1.5px solid #dde5f5; }
+  .btn-secondary:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+  .btn-reset { background: #fff5f5; color: #ef4444; border: 1.5px solid #fecaca; }
+  .btn-reset:hover { background: #fee2e2; border-color: #ef4444; }
+
+  .shuffle-count { text-align: center; margin-bottom: 14px; font-size: 13px; color: var(--text-muted); font-family: 'Space Mono', monospace; }
+  .shuffle-count span { color: #6366f1; font-size: 16px; font-weight: 700; }
+
+  /* ── 범례 ── */
+  .legend { display: flex; gap: 16px; justify-content: center; margin-bottom: 18px; font-size: 12px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; color: var(--text-muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+  /* ── 강의실 ── */
+  .room-frame { background: var(--surface); border: 1.5px solid var(--border); border-radius: 20px; padding: 22px 18px; box-shadow: 0 4px 32px rgba(99,102,241,0.08); }
+  .wall-label { text-align: center; font-size: 11px; font-family: 'Space Mono', monospace; color: #94a3b8; letter-spacing: 1.5px; padding: 6px 12px; border: 1.5px dashed #dde5f5; border-radius: 8px; margin-bottom: 14px; }
+  .screen-label { text-align: center; margin-top: 14px; padding: 10px; background: #eef2ff; border: 1.5px solid #c7d2fe; border-radius: 10px; color: #4f46e5; font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; }
+  .instructor { display: flex; justify-content: center; margin: 12px 0; }
+  .instructor-box { background: #eef2ff; border: 1.5px solid #c7d2fe; border-radius: 12px; padding: 8px 28px; font-size: 12px; font-family: 'Space Mono', monospace; color: #4f46e5; font-weight: 700; letter-spacing: 1.5px; }
+
+  /* ── 자리 그리드 ── */
+  .seat-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 7px; margin-bottom: 8px; }
+  .seat {
+    aspect-ratio: 1; border-radius: 11px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s ease; position: relative;
+    border: 1.5px solid #dde5f5; background: #fff;
+    min-height: 66px; padding: 5px; user-select: none;
+    box-shadow: 0 1px 4px rgba(99,102,241,0.06);
+  }
+  .seat.empty { background: transparent; border-color: transparent; box-shadow: none; cursor: default; pointer-events: none; }
+  .seat.fixed-on { background: #fffbeb; border-color: #fcd34d; box-shadow: 0 2px 8px rgba(245,158,11,0.1); cursor: default; }
+  .seat:not(.empty):not(.fixed-on):hover { border-color: #6366f1; background: #eef2ff; transform: translateY(-2px) scale(1.03); box-shadow: 0 6px 18px rgba(99,102,241,0.18); z-index: 10; }
+  .seat:not(.empty).selected { border-color: #f59e0b; background: #fffbeb; box-shadow: 0 4px 14px rgba(245,158,11,0.25); }
+  .seat.just-swapped { animation: swapPop 0.45s ease; }
+  @keyframes swapPop { 0%{transform:scale(1)} 35%{transform:scale(1.12);border-color:#f59e0b;background:#fffbeb} 70%{transform:scale(0.96)} 100%{transform:scale(1)} }
+  .seat.shuffling .seat-name { animation: flicker 0.1s infinite; }
+  @keyframes flicker { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  .seat-number { font-family: 'Space Mono', monospace; font-size: 9px; color: #cbd5e1; line-height: 1; margin-bottom: 3px; }
+  .seat-name { font-size: clamp(9px, 1.1vw, 12px); font-weight: 700; color: #1e293b; text-align: center; line-height: 1.3; word-break: keep-all; }
+  .seat.fixed-on .seat-name { color: #92400e; }
+  .fixed-badge { display: inline-block; font-size: 8px; padding: 1px 5px; border-radius: 3px; background: #fef3c7; color: #92400e; border: 0.5px solid #fcd34d; margin-top: 2px; font-family: 'Space Mono', monospace; }
+
+  /* ── 안내 ── */
+  .info-panel { margin-top: 18px; padding: 12px 18px; background: #f8faff; border: 1.5px solid #dde5f5; border-radius: 12px; font-size: 12px; color: #64748b; text-align: center; line-height: 1.9; }
+  .info-panel b { color: #f59e0b; }
+  .info-panel .tip { color: #6366f1; font-weight: 700; }
+
+  /* ── 토스트 & 힌트 ── */
+  .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-70px); background: #fff; border: 1.5px solid #c7d2fe; color: #1e293b; padding: 11px 22px; border-radius: 12px; font-size: 13px; font-weight: 600; transition: transform 0.4s cubic-bezier(.17,.67,.35,1.3); z-index: 200; box-shadow: 0 8px 24px rgba(99,102,241,0.15); }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .swap-hint { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: #f59e0b; color: #fff; padding: 9px 22px; border-radius: 30px; font-size: 13px; font-weight: 700; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; z-index: 100; box-shadow: 0 4px 16px rgba(245,158,11,0.35); }
+  .swap-hint.visible { opacity: 1; }
+
+  @media (max-width: 700px) {
+    .seat { min-height: 50px; border-radius: 8px; }
+    .seat-name { font-size: 8px; }
+    .seat-grid { gap: 4px; }
+    .toggle-item { padding: 6px 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <header>
+    <div class="badge">🎲 Seat Shuffle System</div>
+    <h1>자리 배치 <span>셔플</span></h1>
+    <p class="subtitle">생성형AI 웹서비스 개발 과정 · 30명</p>
+  </header>
+
+  <div class="fixed-panel">
+    <div class="fixed-panel-header">
+      <span style="font-size:15px;">📌</span>
+      <span class="fixed-panel-title">고정 자리 관리</span>
+      <span class="fixed-panel-desc">클릭해서 고정 ON / OFF 전환</span>
+    </div>
+    <div class="fixed-toggles" id="fixedToggles"></div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-primary" onclick="autoShuffle()">🔀 랜덤 셔플</button>
+    <button class="btn btn-secondary" onclick="resetSeats()">↩️ 원래 자리로</button>
+    <button class="btn btn-reset" onclick="clearSelection()">✕ 선택 해제</button>
+  </div>
+
+  <div class="shuffle-count">셔플 횟수: <span id="shuffleCount">0</span></div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#fff;border:1.5px solid #dde5f5;"></div>일반 자리 (셔플 대상)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#fffbeb;border:1.5px solid #fcd34d;"></div>고정 ON (셔플 제외)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;border-radius:50%;"></div>첫 번째 선택</div>
+  </div>
+
+  <div class="room-frame">
+    <div class="wall-label">🪟 뒤쪽 유리창</div>
+    <div class="seat-grid" id="seatGrid"></div>
+    <div class="instructor"><div class="instructor-box">👨‍🏫 강사</div></div>
+    <div class="screen-label">📺 앞쪽 스크린</div>
+  </div>
+
+  <div class="info-panel">
+    <b>📌 고정 ON</b> 자리는 셔플에서 제외 · 수동 교환도 불가 &nbsp;|&nbsp;
+    <b>수동 교환:</b> 일반 자리 두 곳을 순서대로 클릭 &nbsp;|&nbsp;
+    <span class="tip">고정 OFF 하면 셔플 풀에 포함</span>
+  </div>
+</div>
+
+<div class="swap-hint" id="swapHint">두 번째 자리를 클릭하면 교환됩니다!</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const LAYOUT = [
+  ['조윤','조은결', null, '이춘우','최준호','이서우', null, '황동건','이상욱'],
+  ['권태현','김성호', null, '김민정(5426)','박지우','박은빈', null, '원가희','신혜진'],
+  [null,'한혜경', null, '진미경','박상우','조용민', null, '김선희','한은태'],
+  [null,'유지산', null, '김민정(5039)','이종혁','김유선', null, '박초롱','박준하'],
+  [null, null, null, null, '심정호','이태경', null, '채란','이민지'],
+];
+
+const ROWS = LAYOUT.length;
+const COLS = LAYOUT[0].length;
+const AISLE_COLS = [2, 6];
+
+// 앞줄 4자리 = 고정 슬롯
+const FIXED_SLOTS = [
+  { r: 4, c: 4 },
+  { r: 4, c: 5 },
+  { r: 4, c: 7 },
+  { r: 4, c: 8 },
+];
+
+let fixedOn = FIXED_SLOTS.map(() => true); // 기본: 모두 고정 ON
+let current = LAYOUT.map(r => [...r]);
+let shuffleCount = 0;
+let swapFirstCell = null;
+
+function isFixed(r, c) {
+  const idx = FIXED_SLOTS.findIndex(s => s.r === r && s.c === c);
+  return idx !== -1 && fixedOn[idx];
+}
+
+// ─── 토글 패널 ───
+function buildToggles() {
+  const container = document.getElementById('fixedToggles');
+  container.innerHTML = '';
+  FIXED_SLOTS.forEach((slot, idx) => {
+    const name = current[slot.r][slot.c] || '미배정';
+    const on = fixedOn[idx];
+    const item = document.createElement('div');
+    item.className = 'toggle-item' + (on ? '' : ' off');
+    item.innerHTML = `
+      <div class="toggle-dot"></div>
+      <span class="toggle-name">${name}</span>
+      <span class="toggle-badge">${on ? 'ON · 고정' : 'OFF · 셔플 포함'}</span>
+    `;
+    item.onclick = () => {
+      fixedOn[idx] = !fixedOn[idx];
+      buildToggles();
+      buildGrid();
+      showToast(fixedOn[idx] ? `📌 ${name} — 고정 ON` : `🔀 ${name} — 셔플 포함으로 변경`);
+    };
+    container.appendChild(item);
+  });
+}
+
+// ─── 자리 번호 (오른쪽 아래 #1 → 왼쪽 위 #30) ───
+function getSeatNum(r, c) {
+  let total = 0;
+  for (let i = 0; i < ROWS; i++)
+    for (let j = 0; j < COLS; j++)
+      if (!AISLE_COLS.includes(j) && current[i][j] !== null) total++;
+  let n = 0;
+  for (let i = 0; i < ROWS; i++) {
+    for (let j = 0; j < COLS; j++) {
+      if (AISLE_COLS.includes(j)) continue;
+      if (current[i][j] !== null) n++;
+      if (i === r && j === c) return total - n + 1;
+    }
+  }
+  return n;
+}
+
+// ─── 그리드 렌더 ───
+function buildGrid() {
+  const grid = document.getElementById('seatGrid');
+  grid.innerHTML = '';
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const name = current[r][c];
+      const isAisle = AISLE_COLS.includes(c);
+      const seat = document.createElement('div');
+
+      if (isAisle || name === null) {
+        seat.className = 'seat empty';
+        if (isAisle) { seat.style.opacity = '0'; seat.style.pointerEvents = 'none'; }
+      } else {
+        const fixed = isFixed(r, c);
+        seat.className = 'seat ' + (fixed ? 'fixed-on' : '');
+        seat.innerHTML = `
+          <div class="seat-number">#${getSeatNum(r, c)}</div>
+          <div class="seat-name">${name}</div>
+          ${fixed ? '<div class="fixed-badge">고정</div>' : ''}
+        `;
+        seat.dataset.row = r;
+        seat.dataset.col = c;
+        if (!fixed) seat.onclick = () => onSeatClick(r, c);
+      }
+      grid.appendChild(seat);
+    }
+  }
+  document.getElementById('shuffleCount').textContent = shuffleCount;
+}
+
+// ─── 수동 교환 ───
+function onSeatClick(r, c) {
+  if (current[r][c] === null || isFixed(r, c)) return;
+
+  if (swapFirstCell === null) {
+    swapFirstCell = { r, c };
+    document.querySelectorAll('.seat').forEach(s => {
+      if (parseInt(s.dataset.row) === r && parseInt(s.dataset.col) === c) s.classList.add('selected');
+    });
+    showSwapHint(true);
+    return;
+  }
+  if (swapFirstCell.r === r && swapFirstCell.c === c) { clearSelection(); return; }
+
+  const { r: r1, c: c1 } = swapFirstCell;
+  const tmp = current[r1][c1];
+  current[r1][c1] = current[r][c];
+  current[r][c] = tmp;
+
+  clearSelection();
+  buildGrid();
+  buildToggles();
+  highlightSwapped([[r1, c1], [r, c]]);
+  showToast(`🔄 ${current[r][c]} ↔ ${current[r1][c1]} 교환 완료!`);
+}
+
+function clearSelection() {
+  swapFirstCell = null;
+  document.querySelectorAll('.seat.selected').forEach(s => s.classList.remove('selected'));
+  showSwapHint(false);
+}
+
+// ─── 랜덤 셔플 (고정 ON 제외) ───
+function autoShuffle() {
+  clearSelection();
+  const cells = [];
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++)
+      if (!AISLE_COLS.includes(c) && current[r][c] !== null && !isFixed(r, c))
+        cells.push([r, c]);
+
+  let names = cells.map(([r, c]) => current[r][c]);
+  for (let i = names.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [names[i], names[j]] = [names[j], names[i]];
+  }
+
+  let frame = 0;
+  const totalFrames = 18;
+  const interval = setInterval(() => {
+    frame++;
+    let tmp = [...names];
+    for (let i = tmp.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [tmp[i], tmp[j]] = [tmp[j], tmp[i]];
+    }
+    cells.forEach(([r, c], idx) => { current[r][c] = tmp[idx]; });
+    buildGrid();
+    document.querySelectorAll('.seat:not(.fixed-on):not(.empty)').forEach(s => s.classList.add('shuffling'));
+
+    if (frame >= totalFrames) {
+      clearInterval(interval);
+      cells.forEach(([r, c], idx) => { current[r][c] = names[idx]; });
+      shuffleCount++;
+      buildGrid();
+      buildToggles();
+      const fixedCount = fixedOn.filter(Boolean).length;
+      showToast(`🎲 셔플 완료! (${shuffleCount}회차)${fixedCount > 0 ? ` · 고정 ${fixedCount}명 제외` : ''}`);
+    }
+  }, 60);
+}
+
+// ─── 원래 자리로 ───
+function resetSeats() {
+  clearSelection();
+  current = LAYOUT.map(r => [...r]);
+  fixedOn = FIXED_SLOTS.map(() => true);
+  shuffleCount = 0;
+  buildGrid();
+  buildToggles();
+  showToast('↩️ 원래 자리 배치로 복원했습니다');
+}
+
+// ─── 교환 강조 ───
+function highlightSwapped(pairs) {
+  setTimeout(() => {
+    document.querySelectorAll('.seat:not(.empty)').forEach(s => {
+      const r = parseInt(s.dataset.row), c = parseInt(s.dataset.col);
+      if (pairs.some(([pr, pc]) => pr === r && pc === c)) {
+        s.classList.add('just-swapped');
+        setTimeout(() => s.classList.remove('just-swapped'), 600);
+      }
+    });
+  }, 50);
+}
+
+function showSwapHint(v) { document.getElementById('swapHint').classList.toggle('visible', v); }
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+buildGrid();
+buildToggles();
+</script>
+</body>
+</html>
