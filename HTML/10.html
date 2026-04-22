@@ -1,65 +1,101 @@
 <html>
     <head>
         <title>포토 캘린더</title>
+        <style>
+            h1,h2{
+                text-align: center;
+            }
+            #calendar{
+                width: 100%;
+                border-collapse: collapse;
+
+            }
+            #calendar th {
+                width: 14%;
+                padding: 10px;
+                background-color: #dadada;
+            }
+             #calendar td {
+                text-align: center;
+                padding: 10px;
+                border: 1px solid black;
+            }
+            /*calendar id를 가지고 그 아래에 있는*/
+            #calendar th:first-child {
+                color: red;
+            }
+             #calendar td:first-child {
+                color: red;
+            }
+            #calendar th:last-child {
+                color: blue;
+            }
+            #calendar th:last-child {
+                color: blue;
+            }
+            img {
+                width: 100%;
+            }
+        </style>
     </head>
     <body>
         <h1>포토 캘린더</h1>
         <h2>2026년 4월</h2>
         <img src="images/사진1.jpeg" width="50%">
-        <table border="1" width="50%">
+        <table id="calendar">
             <tr>
-                <th width="14%" style="color: red;">Sun</th>
-                <th width="14%">Mon</th>
-                <th width="14%">Tue</th>
-                <th width="14%">Wed</th>
-                <th width="14%">Thu</th>
-                <th width="14%">Fri</th>
-                <th width="14%">Sat</th>
+                <th>Sun</th>
+                <th>Mon</th>
+                <th>Tue</th>
+                <th>Wed</th>
+                <th>Thu</th>
+                <th>Fri</th>
+                <th >Sat</th>
             </tr>
             <tr>
-                <th align="center" style="color: red;"></th>
-                <th align="center"></th>
-                <th align="center"></th>
-                <th align="center">1</th>
-                <th align="center">2</th>
-                <th align="center">3</th>
-                <th align="center">4</th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th>1</th>
+                <th>2</th>
+                <th>3</th>
+                <th>4</th>
             </tr>
             <tr>
-                <th align="center">5</th>
-                <th align="center">6</th>
-                <th align="center">7</th>
-                <th align="center">8</th>
-                <th align="center">9</th>
-                <th align="center">10</th>
-                <th align="center">11</th>
+                <th>5</th>
+                <th>6</th>
+                <th>7</th>
+                <th>8</th>
+                <th>9</th>
+                <th>10</th>
+                <th>11</th>
             </tr>
             <tr>
-                <th align="center">13</th>
-                <th align="center">14</th>
-                <th align="center">15</th>
-                <th align="center">16</th>
-                <th align="center">17</th>
-                <th align="center">18</th>
-                <th align="center">19</th>
+                <th>13</th>
+                <th>14</th>
+                <th>15</th>
+                <th>16</th>
+                <th>17</th>
+                <th>18</th>
+                <th>19</th>
             </tr>
             <tr>
-                <th align="center">20</th>
-                <th align="center">21</th>
-                <th align="center">22</th>
-                <th align="center">23</th>
-                <th align="center">24</th>
-                <th align="center">25</th>
-                <th align="center">26</th>
+                <th>20</th>
+                <th>21</th>
+                <th>22</th>
+                <th>23</th>
+                <th>24</th>
+                <th>25</th>
+                <th>26</th>
             </tr>
             <tr>
-                <th align="center">27</th>
-                <th align="center">28</th>
-                <th align="center">29</th>
-                <th align="center">30</th>
-                <th align="center"></th>
-                <th align="center"></th>
-                <th align="center"></th>
+                <th>27</th>
+                <th>28</th>
+                <th>29</th>
+                <th>30</th>
+                <th></th>
+                <th></th>
+                <th></th>
             </tr>
         </table>
     </body>
