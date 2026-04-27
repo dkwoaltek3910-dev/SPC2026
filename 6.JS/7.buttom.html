@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>document</title>
+    <style>
+        /* CSS */
+    </style>
+</head>
+<body>
+    <h1>버튼 두개</h1>
+    <div id="number">0</div> <!-- 숫자 표시 -->
+    
+    <div>
+        <button id="plusBtn">+1</button>  
+        <!-- button onclick = increment, decrement -->
+        <button id="minusBtn">-1</button>
+    </div>
+
+    <script>
+        // 요소 가져오기
+        //function increment()
+        //function decrement()
+        const number = document.getElementById("number");
+        const plusBtn = document.getElementById("plusBtn");
+        const minusBtn = document.getElementById("minusBtn");
+
+        // +1 버튼 클릭
+        plusBtn.addEventListener("click", function () {
+            number.textContent = Number(number.textContent) + 1;
+        });
+
+        // -1 버튼 클릭
+        minusBtn.addEventListener("click", function () {
+            number.textContent = Number(number.textContent) - 1;
+        });
+    </script>
+</body>
+</html>
