@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>마우스 드래그 예제</title>
+
+  <style>
+    body {
+      height: 100vh;
+      margin: 0;
+      background-color: #f2f2f2;
+      overflow: hidden;
+    }
+
+    #box {
+      width: 120px;
+      height: 120px;
+      background-color: royalblue;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: absolute;
+      left: 100px;
+      top: 100px;
+      cursor: grab;
+      user-select: none;
+      border-radius: 12px;
+    }
+
+    #box:active {
+      cursor: grabbing;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="box">드래그</div>
+
+  <script>
+    const box = document.getElementById("box");
+
+    let isDragging = false;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    box.addEventListener("mousedown", function(event) {
+      isDragging = true;
+
+      offsetX = event.clientX - box.offsetLeft;
+      offsetY = event.clientY - box.offsetTop;
+    });
+
+    document.addEventListener("mousemove", function(event) {
+      if (isDragging === true) {
+        box.style.left = event.clientX - offsetX + "px";
+        box.style.top = event.clientY - offsetY + "px";
+      }
+    });
+
+    document.addEventListener("mouseup", function() {
+      isDragging = false;
+    });
+  </script>
+</body>
+</html>
