@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hangman Game</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding-top: 50px;
+    }
+
+    #word {
+      font-size: 40px;
+      letter-spacing: 10px;
+      margin: 30px;
+    }
+
+    #myInput {
+      font-size: 20px;
+      padding: 10px;
+      width: 250px;
+      text-align: center;
+    }
+
+    #message {
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+
+    .red {
+      color: red;
+    }
+
+    .green {
+      color: green;
+    }
+
+    #retryBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      display: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Hangman Game</h1>
+
+  <h2 id="stage">1 Stage</h2>
+
+  <div id="word"></div>
+
+  <input type="text" id="myInput" placeholder="알파벳 입력 후 Enter">
+
+  <p>남은 기회: <span id="chance">5</span></p>
+
+  <div id="message"></div>
+
+  <button id="retryBtn">↻</button>
+
+  <script>
+    const answers = ["pear", "apple", "strawberry", "kiwi", "orange"];
+
+    let stageIndex = 0;
+    let correctLetters = [];
+    let chance = 5;
+    let gameStop = false;
+
+    const myInput = document.getElementById("myInput");
+    const stage = document.getElementById("stage");
+    const word = document.getElementById("word");
+    const chanceText = document.getElementById("chance");
+    const message = document.getElementById("message");
+    const retryBtn = document.getElementById("retryBtn");
+
+    function showWord() {
+      const answer = answers[stageIndex];
+      let result = "";
+
+      for (let i = 0; i < answer.length; i++) {
+        const letter = answer[i];
+
+        if (correctLetters.includes(letter)) {
+          result += letter;
+        } else {
+          result += "_";
+        }
+      }
+
+      word.textContent = result;
+
+      if (result === answer) {
+        message.textContent = "Correct!";
+        message.className = "green";
+        gameStop = true;
+
+        setTimeout(() => {
+          nextStage();
+        }, 800);
+      }
+    }
+
+    function showInfo() {
+      stage.textContent = stageIndex + 1 + " Stage";
+      chanceText.textContent = chance;
+    }
+
+    function nextStage() {
+      stageIndex++;
+
+      if (stageIndex === answers.length) {
+        stage.textContent = "Game Clear";
+        word.textContent = "";
+        chanceText.textContent = "";
+        message.textContent = "GOOD!";
+        message.className = "green";
+        myInput.disabled = true;
+        return;
+      }
+
+      correctLetters = [];
+      chance = 5;
+      gameStop = false;
+
+      message.textContent = "";
+      message.className = "";
+      myInput.value = "";
+
+      showWord();
+      showInfo();
+      myInput.focus();
+    }
+
+    function retryStage() {
+      correctLetters = [];
+      chance = 5;
+      gameStop = false;
+
+      message.textContent = "";
+      message.className = "";
+      myInput.value = "";
+
+      retryBtn.style.display = "none";
+
+      showWord();
+      showInfo();
+      myInput.focus();
+    }
+
+    myInput.addEventListener("keydown", (ev) => {
+      if (ev.key !== "Enter") {
+        return;
+      }
+
+      if (gameStop === true) {
+        return;
+      }
+
+      const key = myInput.value.toLowerCase();
+
+      if (key.length !== 1 || key < "a" || key > "z") {
+        message.textContent = "알파벳 한 글자만 입력하세요.";
+        message.className = "red";
+        myInput.value = "";
+        return;
+      }
+
+      const answer = answers[stageIndex];
+
+      if (answer.includes(key)) {
+        correctLetters.push(key);
+      } else {
+        chance--;
+      }
+
+      myInput.value = "";
+
+      showWord();
+      showInfo();
+
+      if (chance === 0) {
+        message.textContent = "Game Over!";
+        message.className = "red";
+        gameStop = true;
+        retryBtn.style.display = "inline-block";
+      }
+    });
+
+    retryBtn.addEventListener("click", function() {
+      retryStage();
+    });
+
+    showWord();
+    showInfo();
+    myInput.focus();
+  </script>
+</body>
+</html>

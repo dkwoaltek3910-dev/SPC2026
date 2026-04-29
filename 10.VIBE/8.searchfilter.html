@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>실시간 검색 필터</title>
+</head>
+<body>
+    <h1>실시간 검색 필터</h1>
+
+    <input type="text" id="searchInput" placeholder="Search fruit...">
+
+    <ul id="fruitList">
+        <li>Apple</li>
+        <li>Banana</li>
+        <li>Orange</li>
+        <li>Mango</li>
+        <li>Grape</li>
+        <li>Strawberry</li>
+        <li>Blueberry</li>
+        <li>Pineapple</li>
+        <li>Watermelon</li>
+        <li>Melon</li>
+        <li>Peach</li>
+        <li>Cherry</li>
+        <li>Kiwi</li>
+        <li>Lemon</li>
+        <li>Lime</li>
+        <li>Pear</li>
+        <li>Plum</li>
+        <li>Coconut</li>
+        <li>Avocado</li>
+        <li>Papaya</li>
+    </ul>
+
+    <script>
+        const searchInput = document.getElementById("searchInput");
+        const fruitItems = document.querySelectorAll("#fruitList li");
+
+        searchInput.addEventListener("keyup", function () {
+            const keyword = searchInput.value.toLowerCase();
+
+            fruitItems.forEach(function (fruit) {
+                const text = fruit.textContent.toLowerCase();
+
+                if (text.includes(keyword)) {
+                    fruit.style.display = "list-item";
+                } else {
+                    fruit.style.display = "none";
+                }
+            });
+        });
+    </script>
+</body>
+</html>
